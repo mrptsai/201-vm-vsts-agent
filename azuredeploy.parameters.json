@@ -1,0 +1,24 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "publicIPDnsName": {
+            "value": "GEN-PIPDNSNAME"
+        },
+        "vmAdminUser": {
+            "value": "GEN-ADMINUSER"
+        },
+        "vmAdminPassword": {
+            "value": "GEN-ADMINPASSWORD"
+        },
+        "vstsAccount": {
+            "value": "GEN-VSTSACCOUNT"
+        },
+        "vstsPersonalAccessToken": {
+            "value": "GEN-VSTSPAT"
+        },
+        "vstsPoolName": {
+            "value": "GEN-VSTSPOOL"
+        }
+    }
+}
