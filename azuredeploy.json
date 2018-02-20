@@ -179,7 +179,7 @@
             "vsts": "[concat('agent-', uniqueString(resourceGroup().id))]"
         },
         "powerShell": {
-            "folder": "ps-scripts",
+            "folder": "scripts",
             "script": "InstallVstsAgent.ps1",
             "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'))]"
         }

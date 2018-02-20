@@ -3,22 +3,22 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "publicIPDnsName": {
-            "value": "GEN-PIPDNSNAME"
+            "value": "GEN-UNIQUE-23"
         },
         "vmAdminUser": {
-            "value": "GEN-ADMINUSER"
+            "value": "adminuser"
         },
         "vmAdminPassword": {
-            "value": "GEN-ADMINPASSWORD"
+            "value": "GEN-PASSWORD"
         },
         "vstsAccount": {
-            "value": "GEN-VSTSACCOUNT"
+            "value": "GEN-UNIQUE-24"
         },
         "vstsPersonalAccessToken": {
-            "value": "GEN-VSTSPAT"
+            "value": "GEN-UNIQUE-25"
         },
         "vstsPoolName": {
-            "value": "GEN-VSTSPOOL"
+            "value": "GEN-UNIQUE-26"
         }
     }
 }
