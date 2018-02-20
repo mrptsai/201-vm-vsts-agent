@@ -162,6 +162,4 @@ We use [Github](https://github.com/) for version control.
 
 ## Authors
 
-**Paul Towler** - *Initial work* - [vm-vsts-agent](https://github.com/mrptsai/201-vm-vsts-agent)
-
-See also the list of [contributors](https://github.com/mrptsai/201-vm-vsts-agent/graphs/contributors) who participated in this project.
+**Paul Towler** - *Initial work* - [vm-vsts-agent](https://github.com/azure-quickstart-templates/201-vm-vsts-agent)
