@@ -1,0 +1,7 @@
+{
+    "itemDisplayName": "201-vm-vst-agent",
+    "description": "This pattern builds a Virtual Machine and supporting Resources with Visual Studio 2017 installed. It also installs and configures upto 4 VSTS build agents",
+    "summary": "https://github.com/mrptsai/201-vm-vsts-agent",
+    "githubUsername": "mrptsai",
+    "dateUpdated": "20-02-2018"
+}

@@ -1,8 +1,8 @@
-# vm-vsts-agent
+# 201-vm-vsts-agent
 
 With Visual Studio Enterprise you can create applications across devices and services, using an integrated, end-to-end DevOps solution for productivity and coordination across teams of any size. You get the tools you need to design, build, deploy and manage desktop, Windows Store, Windows Phone, and Office apps, as well as mobile and web apps across any device, web site, cloud service, and more. This image contains the recommended prodct install of the originally released (or 'RTW') version of Visual Studio Enterprise 2017 on Windows Server 2016. It allows you to easily and quickly set up a development environment in Azure to build and test applications using Visual Studio.
 
-The Infrastructure Pattern Template **vm-vsts-agent** builds the following:
+The Infrastructure Pattern Template **201-vm-vsts-agent** builds the following:
  * Uses the Workload Subscription Virtual Network (vn-ss1-0)
  * Creates 1 Availability Set
  * Creates a Public IP Address
@@ -15,7 +15,7 @@ The Infrastructure Pattern Template **vm-vsts-agent** builds the following:
 
 Click on the **Deploy to Azure** button below. This will open the Azure Portal (login if necessary) and start a Custom Deployment. The following Parameters will be shown and must be updated / selected accordingly. 
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2F201-vm-vsts-agent%2F201-vm-vsts-agent%2Fazuredeploy.json?at=refs%2Fheads%2Fmaster" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmrptsai%2F201-vm-vsts-agent%2Fmaster%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
@@ -161,4 +161,4 @@ We use [Github](https://github.com/) for version control.
 
 **Paul Towler** - *Initial work* - [vm-vsts-agent](https://github.com/mrptsai/201-vm-vsts-agent)
 
-See also the list of [contributors](https://bitbucket.service.anz/projects/EWCD/repos/vm-vsts-agent/commits) who participated in this project.
+See also the list of [contributors](https://github.com/mrptsai/201-vm-vsts-agent/graphs/contributors) who participated in this project.
