@@ -29,6 +29,7 @@ Write-Verbose "Server URL: $serverUrl" -verbose
 $retryCount = 3
 $retries = 1
 Write-Verbose "Downloading Agent install files" -verbose
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 do
 {
   try
