@@ -118,9 +118,9 @@ Foreach ($Module in $Modules)
 		If ($tmp = Get-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -ErrorAction SilentlyContinue) 
 		{
 			Set-Acl -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -AclObject $Acl  -ErrorAction SilentlyContinue
-			Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse | Set-Acl -AclObject $Acl
-			Get-ChildItem "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse -Force | Remove-Item -Force -Recurse
-			Remove-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Force -Recurse 
+			Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse | Set-Acl -AclObject $Acl -ErrorAction SilentlyContinue
+			Get-ChildItem "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse -Force | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+			Remove-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Force -Recurse -ErrorAction SilentlyContinue
 		}
 	}
 }
