@@ -29,6 +29,7 @@ Write-Verbose "Server URL: $serverUrl" -verbose
 $retryCount = 3
 $retries = 1
 Write-Verbose "Downloading Agent install files" -verbose
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 do
 {
   try
@@ -113,13 +114,13 @@ Foreach ($Module in $Modules)
 	If ($Module -eq "PackageManagement" -or  $Module -eq "Pester" -or $Module -eq "PowerShellGet")
 	{
 		Write-Host $Module
-		If ($tmp = Get-Module $Module) {Remove-Module $Module}
+		If ($tmp = Get-Module $Module) {Remove-Module $Module -Force}
 		If ($tmp = Get-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -ErrorAction SilentlyContinue) 
 		{
 			Set-Acl -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -AclObject $Acl  -ErrorAction SilentlyContinue
-			Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse | Set-Acl -AclObject $Acl
-			Get-ChildItem "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse -Force | Remove-Item -Force -Recurse
-			Remove-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Force -Recurse 
+			Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse | Set-Acl -AclObject $Acl -ErrorAction SilentlyContinue
+			Get-ChildItem "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse -Force | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+			Remove-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Force -Recurse -ErrorAction SilentlyContinue
 		}
 	}
 }
