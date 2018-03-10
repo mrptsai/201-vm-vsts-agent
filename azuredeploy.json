@@ -181,7 +181,7 @@
         "powerShell": {
             "folder": "scripts",
             "script": "InstallVstsAgent.ps1",
-            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'))]"
+            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'), ' -AdminUser ', parameters('vmAdminUser'))]"
         }
     },
     "resources": [
