@@ -114,7 +114,7 @@ Foreach ($Module in $Modules)
 	If ($Module -eq "PackageManagement" -or  $Module -eq "Pester" -or $Module -eq "PowerShellGet")
 	{
 		Write-Host $Module
-		If ($tmp = Get-Module $Module) {Remove-Module $Module}
+		If ($tmp = Get-Module $Module) {Remove-Module $Module -Force}
 		If ($tmp = Get-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -ErrorAction SilentlyContinue) 
 		{
 			Set-Acl -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -AclObject $Acl  -ErrorAction SilentlyContinue
