@@ -1,11 +1,17 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {        
+    "parameters": {
         "publicIPDnsName": {
             "type": "string",
             "metadata": {
                 "description": "Enter a DNS name to resolve to the Public IP Address"
+            }
+        },
+        "scriptUrl": {
+            "type": "string",
+            "metadata": {
+            "description": "URL for the PowerShell Script. NOTE: Can be a Github url(raw) to the ps1 file"
             }
         },
         "vmAdminUser": {
@@ -54,19 +60,7 @@
             "metadata": {
                 "description": "The Visual Studio Team Services build agent pool for this build agent to join. Use 'Default' if you don't have a separate pool."
             }
-        },
-        "_artifactsLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "Auto-generated container in staging storage account to receive post-build staging folder upload"
-            }
-        },
-        "_artifactsLocationSasToken": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Auto-generated token to access _artifactsLocation"
-            }
-        }
+        }        
     },
     "variables": {
         "ids": {
@@ -250,12 +244,13 @@
                         "publisher": "Microsoft.Compute",
                         "type": "CustomScriptExtension",
                         "typeHandlerVersion": "1.9",
-                        "settings": {},
-                        "protectedSettings": {
+                        "settings": {
                             "fileUris": [
-                                "[concat(parameters('_artifactsLocation'), '/', variables('powerShell').folder, '/', variables('powerShell').script, parameters('_artifactsLocationSasToken'))]"
-                            ],
-                            "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File ', './', variables('powerShell').folder, '/', variables('powerShell').script, ' ', variables('powerShell').parameters)]"
+                                "[parameters('scriptUrl')]"
+                            ]
+                        },
+                        "protectedSettings": {                            
+                            "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File ', './', variables('powerShell').script, ' ', variables('powerShell').parameters)]"
                         }
                     }
                 }
