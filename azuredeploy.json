@@ -2,6 +2,19 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "modules": {
+            "type": "array",
+            "metadata": {
+                "description": "Enter the Module(s) to install including the Version"
+            },
+            "defaultValue": [
+                { "name": "AzureRM", "version": "5.6.0" },
+                { "name": "AzureAD", "version": "2.0.1.3" },
+                { "name": "Bitbucket.v2", "version": "1.1.2" },
+                { "name": "GetPassword", "version": "1.0.0.0" },
+                { "name": "posh-git", "version": "0.7.1" }
+            ]
+        },
         "publicIPDnsName": {
             "type": "string",
             "metadata": {
@@ -84,7 +97,7 @@
         },
         "powerShell": {
             "script": "InstallVstsAgent.ps1",
-            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'), ' -AdminUser ', parameters('vmAdminUser'))]"
+            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'), ' -AdminUser ', parameters('vmAdminUser'), ' -Modules ', parameters('modules'))]"
         }
     },
     "resources": [

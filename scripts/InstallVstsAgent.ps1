@@ -5,12 +5,26 @@
 [CmdletBinding()]
 Param
 (
-	[Parameter(Mandatory=$true)]$VSTSAccount,
-	[Parameter(Mandatory=$true)]$PersonalAccessToken,
-	[Parameter(Mandatory=$true)]$AgentName,
-	[Parameter(Mandatory=$true)]$PoolName,
-	[Parameter(Mandatory=$true)]$AgentCount,
-	[Parameter(Mandatory=$true)]$AdminUser
+	[Parameter(Mandatory=$true)]
+	[string]$VSTSAccount,
+
+	[Parameter(Mandatory=$true)]
+	[string]$PersonalAccessToken,
+
+	[Parameter(Mandatory=$true)]
+	[string]$AgentName,
+
+	[Parameter(Mandatory=$true)]
+	[string]$PoolName,
+
+	[Parameter(Mandatory=$true)]
+	[int]$AgentCount,
+
+	[Parameter(Mandatory=$true)]
+	[string]$AdminUser,
+
+	[Parameter(Mandatory=$true)]
+	[object]$Modules
 )
 
 Write-Verbose "Entering InstallVSOAgent.ps1" -verbose
@@ -102,14 +116,12 @@ if (!(Test-Path -Path C:\Modules -ErrorAction SilentlyContinue))
 { New-Item -ItemType Directory -Name Modules -Path C:\ }
 
 # Installing New Modules and Removing Old
-$Modules = "AzureRm", "AzureAD", "Bitbucket.v2", "GetPassword", "posh-git"
-
 Foreach ($Module in $Modules)
-{	Find-Module -Name $Module -Repository PSGallery | Save-Module -Path C:\Modules	}
+{	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery | Save-Module -Path C:\Modules	}
 
-$Modules = "PowerShellGet", "PackageManagement","Pester"
+$DefaultModules = "PowerShellGet", "PackageManagement","Pester"
 
-Foreach ($Module in $Modules)
+Foreach ($Module in $DefaultModules)
 {
 	if ($tmp = Get-Module $Module -ErrorAction SilentlyContinue) {	Remove-Module $Module -Force	}
 	Find-Module -Name $Module -Repository PSGallery | Install-Module -Force -Confirm:$false -SkipPublisherCheck
