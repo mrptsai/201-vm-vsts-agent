@@ -100,6 +100,9 @@
             "properties": {
                 "platformUpdateDomainCount": 5,
                 "platformFaultDomainCount": 2
+            },
+            "sku": {
+                "name": "Aligned"
             }
         },
         {
