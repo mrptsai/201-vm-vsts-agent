@@ -24,7 +24,7 @@ Param
 	[string]$AdminUser,
 
 	[Parameter(Mandatory=$true)]
-	[object]$Modules
+	[array]$Modules
 )
 
 Write-Verbose "Entering InstallVSOAgent.ps1" -verbose
