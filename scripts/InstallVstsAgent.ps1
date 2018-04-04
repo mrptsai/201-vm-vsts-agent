@@ -5,12 +5,26 @@
 [CmdletBinding()]
 Param
 (
-	[Parameter(Mandatory=$true)]$VSTSAccount,
-	[Parameter(Mandatory=$true)]$PersonalAccessToken,
-	[Parameter(Mandatory=$true)]$AgentName,
-	[Parameter(Mandatory=$true)]$PoolName,
-	[Parameter(Mandatory=$true)]$AgentCount,
-	[Parameter(Mandatory=$true)]$AdminUser
+	[Parameter(Mandatory=$true)]
+	[string]$VSTSAccount,
+
+	[Parameter(Mandatory=$true)]
+	[string]$PersonalAccessToken,
+
+	[Parameter(Mandatory=$true)]
+	[string]$AgentName,
+
+	[Parameter(Mandatory=$true)]
+	[string]$PoolName,
+
+	[Parameter(Mandatory=$true)]
+	[int]$AgentCount,
+
+	[Parameter(Mandatory=$true)]
+	[string]$AdminUser,
+
+	[Parameter(Mandatory=$true)]
+	[array]$Modules
 )
 
 Write-Verbose "Entering InstallVSOAgent.ps1" -verbose
@@ -93,42 +107,31 @@ for ($i=0; $i -lt $AgentCount; $i++)
 	Pop-Location
 }
 
-# Getting ACL for Admin User Profile and the Administrators Group
-$Acl = Get-Acl "C:\Users\$($Adminuser)"
-$Group = New-Object System.Security.Principal.NTAccount("BuiltIn", "Administrators")
-
 # Adding new Path to PSModulePath environment variable
 $CurrentValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
 [Environment]::SetEnvironmentVariable("PSModulePath", $CurrentValue + ";C:\Modules", "Machine")
+$NewValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
+Write-Verbose "new Path is: $($NewValue)" -verbose
 
 # Creating new Path
 if (!(Test-Path -Path C:\Modules -ErrorAction SilentlyContinue))
-{ New-Item -ItemType Directory -Name Modules -Path C:\ }
+{	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose }
 
 # Installing New Modules and Removing Old
-$Modules = "AzureRm", "AzureAD", "Bitbucket.v2", "GetPassword", "PackageManagement", "posh-git", "PowerShellGet", "Pester"
-
 Foreach ($Module in $Modules)
+{	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Save-Module -Path C:\Modules -Verbose	}
+
+$DefaultModules = "PowerShellGet", "PackageManagement","Pester"
+
+Foreach ($Module in $DefaultModules)
 {
-	Find-Module -Name $Module -Repository PSGallery | Save-Module -Path C:\Modules
-	If ($Module -eq "PackageManagement" -or  $Module -eq "Pester" -or $Module -eq "PowerShellGet")
-	{
-		Write-Host $Module
-		If ($tmp = Get-Module $Module) {Remove-Module $Module -Force}
-		If ($tmp = Get-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -ErrorAction SilentlyContinue) 
-		{
-			Set-Acl -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -AclObject $Acl  -ErrorAction SilentlyContinue
-			Get-ChildItem -Path "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse | Set-Acl -AclObject $Acl -ErrorAction SilentlyContinue
-			Get-ChildItem "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Recurse -Force | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
-			Remove-Item "C:\Program Files\WindowsPowerShell\Modules\$($Module)" -Force -Recurse -ErrorAction SilentlyContinue
-		}
-	}
+	if ($tmp = Get-Module $Module -ErrorAction SilentlyContinue) {	Remove-Module $Module -Force	}
+	Find-Module -Name $Module -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
 }
 
 # Uninstalling old Azure PowerShell Modules
 $programName = "Microsoft Azure PowerShell"
-$app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'"
+$app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'" -Verbose
 $app.Uninstall()
-
 
 Write-Verbose "Exiting InstallVSTSAgent.ps1" -Verbose
