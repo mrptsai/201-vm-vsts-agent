@@ -24,7 +24,7 @@ Param
 	[string]$AdminUser,
 
 	[Parameter(Mandatory=$true)]
-	[object]$Modules
+	[array]$Modules
 )
 
 Write-Verbose "Entering InstallVSOAgent.ps1" -verbose
@@ -110,26 +110,28 @@ for ($i=0; $i -lt $AgentCount; $i++)
 # Adding new Path to PSModulePath environment variable
 $CurrentValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
 [Environment]::SetEnvironmentVariable("PSModulePath", $CurrentValue + ";C:\Modules", "Machine")
+$NewValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
+Write-Verbose "new Path is: $($NewValue)" -verbose
 
 # Creating new Path
 if (!(Test-Path -Path C:\Modules -ErrorAction SilentlyContinue))
-{ New-Item -ItemType Directory -Name Modules -Path C:\ }
+{	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose }
 
 # Installing New Modules and Removing Old
 Foreach ($Module in $Modules)
-{	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery | Save-Module -Path C:\Modules	}
+{	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Save-Module -Path C:\Modules -Verbose	}
 
 $DefaultModules = "PowerShellGet", "PackageManagement","Pester"
 
 Foreach ($Module in $DefaultModules)
 {
 	if ($tmp = Get-Module $Module -ErrorAction SilentlyContinue) {	Remove-Module $Module -Force	}
-	Find-Module -Name $Module -Repository PSGallery | Install-Module -Force -Confirm:$false -SkipPublisherCheck
+	Find-Module -Name $Module -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
 }
 
 # Uninstalling old Azure PowerShell Modules
 $programName = "Microsoft Azure PowerShell"
-$app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'"
+$app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'" -Verbose
 $app.Uninstall()
 
 Write-Verbose "Exiting InstallVSTSAgent.ps1" -Verbose
