@@ -117,12 +117,12 @@ $NewValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
 Write-Verbose "new Path is: $($NewValue)" -verbose
 
 # Creating new Path
-if (!(Test-Path -Path $ModulesPath -ErrorAction SilentlyContinue))
+if (Test-Path -Path $ModulesPath -ErrorAction SilentlyContinue)
 {	
+	Remove-Item -Path $ModulesPath -Recurse -Force -Confirm:$false -Verbose
 	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose
 } else
 {
-	Remove-Item -Path $ModulesPath -Recurse -Force -Confirm:$false -Verbose
 	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose
 }
 
