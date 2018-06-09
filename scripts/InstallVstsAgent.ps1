@@ -27,7 +27,7 @@ Param
 	[array]$Modules
 )
 
-Write-Verbose "Entering InstallVSOAgent.ps1" -verbose
+Write-Verbose "Entering InstallVstsAgent.ps1" -verbose
 
 $currentLocation = Split-Path -parent $MyInvocation.MyCommand.Definition
 Write-Verbose "Current folder: $currentLocation" -verbose
@@ -50,7 +50,7 @@ do
   {
     Write-Verbose "Trying to get download URL for latest VSTS agent release..."
     $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Microsoft/vsts-agent/releases"
-	$latestRelease = $latestRelease | Where-Object assets -ne $null | Sort-Object created_at -Descending | Select-Object -First 1
+    $latestRelease = $latestRelease | Where-Object assets -ne $null | Sort-Object created_at -Descending | Select-Object -First 1
     $latestReleaseDownloadUrl = ($latestRelease.assets | ? { $_.name -like "*win-x64*" }).browser_download_url
     Invoke-WebRequest -Uri $latestReleaseDownloadUrl -Method Get -OutFile "$agentTempFolderName\agent.zip"
     Write-Verbose "Downloaded agent successfully on attempt $retries" -verbose
@@ -107,19 +107,21 @@ for ($i=0; $i -lt $AgentCount; $i++)
 	Pop-Location
 }
 
-# Adding new Path to PSModulePath environment variable
-$CurrentValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
-[Environment]::SetEnvironmentVariable("PSModulePath", $CurrentValue + ";C:\Modules", "Machine")
-$NewValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
-Write-Verbose "new Path is: $($NewValue)" -verbose
-
-# Creating new Path
-if (!(Test-Path -Path C:\Modules -ErrorAction SilentlyContinue))
-{	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose }
+# Modules Path
+$ModulesPath = "C:\Program Files\WindowsPowerShell\Modules"
 
 # Installing New Modules and Removing Old
 Foreach ($Module in $Modules)
-{	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Save-Module -Path C:\Modules -Verbose	}
+{	
+	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -Verbose
+	$installedModules = Get-InstalledModule | Where-Object Name -like "$($Module.Name)*"
+	Foreach ($installedModule in $installedModules)
+	{
+		$Latest = Get-InstalledModule -Name $installedModule.Name
+		Get-InstalledModule $installedModule.Name -AllVersions | Where-Object Version -ne $installedModule.Version} | Uninstall-Module -Verbose
+	}
+}
+	
 
 $DefaultModules = "PowerShellGet", "PackageManagement","Pester"
 
