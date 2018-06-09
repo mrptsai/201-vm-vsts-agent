@@ -108,20 +108,34 @@ for ($i=0; $i -lt $AgentCount; $i++)
 }
 
 # Modules Path
-$ModulesPath = "C:\Program Files\WindowsPowerShell\Modules"
+$ModulesPath = "C:\Modules"
+
+# Adding new Path to PSModulePath environment variable
+$CurrentValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
+[Environment]::SetEnvironmentVariable("PSModulePath", $CurrentValue + ";$($ModulesPath)", "Machine")
+$NewValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
+Write-Verbose "new Path is: $($NewValue)" -verbose
+
+# Creating new Path
+if (!(Test-Path -Path $ModulesPath -ErrorAction SilentlyContinue))
+{	
+	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose
+} else
+{
+	Remove-Item -Path $ModulesPath -Recurse -Force -Confirm:$false -Verbose
+	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose
+}
 
 # Installing New Modules and Removing Old
 Foreach ($Module in $Modules)
 {	
-	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -Verbose
+	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Save-Module -Path $ModulesPath -Verbose
 	$installedModules = Get-InstalledModule | Where-Object Name -like "$($Module.Name)*"
 	Foreach ($installedModule in $installedModules)
 	{
-		$Latest = Get-InstalledModule -Name $installedModule.Name
-		Get-InstalledModule $installedModule.Name -AllVersions | Where-Object Version -ne $installedModule.Version} | Uninstall-Module -Verbose
+		Get-InstalledModule $installedModule.Name -AllVersions | Uninstall-Module -Verbose
 	}
 }
-	
 
 $DefaultModules = "PowerShellGet", "PackageManagement","Pester"
 
