@@ -41,7 +41,7 @@
             "metadata": {
             "description": "URL for the PowerShell Script. NOTE: Can be a Github url(raw) to the ps1 file"
             },
-            "defaultValue": "https://raw.githubusercontent.com/mrptsai/201-vm-vsts-agent/master/scripts/InstallVstsAgent.ps1"
+            "defaultValue": "https://raw.githubusercontent.com/mrptsai/201-vm-vsts-agent/master/scripts/Install-VstsAgent.ps1"
         },
         "vmAdminUser": {
             "type": "string",
