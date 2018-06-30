@@ -102,8 +102,8 @@ Write-Verbose "Server URL: $($serverUrl)" -Verbose
 
 Write-Verbose "Trying to get download URL for latest VSTS agent release..."
 $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Microsoft/vsts-agent/releases"
-$latestRelease = $latestRelease | Where-Object assets -ne $null | Sort-Object created_at -Descending | Select-Object -First 1
-$latestReleaseDownloadUrl = ($latestRelease.assets | ? { $_.name -like "*win-x64*" }).browser_download_url
+$latestRelease = $latestRelease.assets | ? { $_.name -like "*win-x64*" } | Sort-Object created_at -Descending | Select-Object -First 1
+$latestReleaseDownloadUrl = $latestRelease.browser_download_url
 Invoke-FileDownLoad -Name "vsts-agent" -Uri $latestReleaseDownloadUrl -TempFolderName $tempFolderName
 
 for ($i=0; $i -lt $AgentCount; $i++)
