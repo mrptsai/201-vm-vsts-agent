@@ -29,7 +29,7 @@
         "packages": {
             "type": "array",
             "metadata": {
-                "description": "Enter the Module(s) to install including the Version"
+                "description": "Enter the Packags(s) to install including the Version via Chocolatey"
             },
             "defaultValue": [
                 {
