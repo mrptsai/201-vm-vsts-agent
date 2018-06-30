@@ -30,23 +30,25 @@ Param
 	[array]$Packages
 )
 
-#region Install Chocolately 
-Get-PackageProvider -Name chocolatey -Force
-#endregion
-
-#region Install Packages
-foreach ($Package in $Packages)
-{
-	Install-Package $Package.Name -RequiredVersion $Package.Version -Source chocolatey -Force
-}
-#endregion
-
 #region Variables
+$PersonalAccessToken = $PersonalAccessToken | ConvertTo-SecureString -AsPlainText -Force
 $currentLocation = Split-Path -parent $MyInvocation.MyCommand.Definition
 $tempFolderName = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
 $serverUrl = "https://$($VSTSAccount).visualstudio.com"
 $modulesPath = "C:\Modules"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#endregion
+
+#region Install Chocolately 
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+choco upgrade chocolatey
+#endregion
+
+#region Install Packages
+foreach ($Package in $Packages)
+{
+	choco install $Package.Name --version $Package.Version --force -y
+} 
 #endregion
 
 #region Modules
@@ -67,7 +69,6 @@ if (Test-Path -Path $modulesPath -ErrorAction SilentlyContinue)
 }
 
 # Installing New Modules and Removing Old
-
 Foreach ($Module in $Modules)
 {	
 	$installedModules = Get-InstalledModule | Where-Object Name -like "$($Module.Name)*"
@@ -75,8 +76,29 @@ Foreach ($Module in $Modules)
 	{
 		Get-InstalledModule $installedModule.Name -AllVersions | Uninstall-Module -Verbose
 	}
-	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Save-Module -Path $ModulesPath -Verbose 
-	Install-Module -Name $Module.Name	
+	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
+}
+
+# Checking for multiple versions of modules
+$Mods = Get-InstalledModule
+
+foreach ($Mod in $Mods)
+{
+  	$earlist = Get-InstalledModule $Mod.Name -AllVersions | Select-Object -First 1
+  	$specificMods = Get-InstalledModule $Mod.Name -AllVersions
+
+	if ($specificMods.count -gt 1)
+	{
+		write-output "$($specificMods.count) versions of this module found [ $($Mod.Name) ]"
+		foreach ($sm in $specificMods)
+		{
+			if ($sm.version -ne $earlist.version)
+			{ 
+				write-output " $($sm.name) - $($sm.version) [highest installed is $($latest.version)]" 
+				$sm | uninstall-module -force
+			}
+		}
+	}
 }
 
 $DefaultModules = "PowerShellGet", "PackageManagement","Pester"
@@ -93,8 +115,7 @@ for ($i=0; $i -lt $AgentCount; $i++)
 	$Agent = ($AgentName + "-" + $i)
 
 	Write-Verbose "Configuring agent '$($Agent)'" -Verbose
-	$PersonalAccessToken = $PersonalAccessToken | ConvertTo-SecureString -AsPlainText -Force
-	Install-VSTSAgent -Account $VSTSAccount -PAT $PersonalAccessToken -Name $Agent -Pool $PoolName
+	Install-VSTSAgent -Account $VSTSAccount -PAT $PersonalAccessToken -Name $Agent -Pool $PoolName -AgentDirectory "C:\Agents"
 }
 #endregion
 
@@ -105,4 +126,5 @@ $app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'"
 $app.Uninstall()
 
 Write-Verbose "Exiting InstallVSTSAgent.ps1" -Verbose
+Restart-Computer -Force
 #endregion
