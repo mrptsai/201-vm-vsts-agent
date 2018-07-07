@@ -32,10 +32,6 @@ Param
 
 #region Variables
 $PersonalAccessToken = $PersonalAccessToken | ConvertTo-SecureString -AsPlainText -Force
-$currentLocation = Split-Path -parent $MyInvocation.MyCommand.Definition
-$tempFolderName = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
-$serverUrl = "https://$($VSTSAccount).visualstudio.com"
-$modulesPath = "C:\Modules"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 #endregion
 
@@ -58,16 +54,6 @@ $currentValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
 $newValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
 Write-Verbose "new Path is: $($newValue)" -verbose
 
-# Creating new Path
-if (Test-Path -Path $modulesPath -ErrorAction SilentlyContinue)
-{	
-	Remove-Item -Path $modulesPath -Recurse -Force -Confirm:$false -Verbose
-	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose
-} else
-{
-	New-Item -ItemType Directory -Name Modules -Path C:\ -Verbose
-}
-
 # Installing New Modules and Removing Old
 Foreach ($Module in $Modules)
 {	
@@ -76,7 +62,7 @@ Foreach ($Module in $Modules)
 	{
 		Get-InstalledModule $installedModule.Name -AllVersions | Uninstall-Module -Verbose
 	}
-	Find-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
+	Find-Module -Name $Module.Name -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
 }
 
 # Checking for multiple versions of modules
@@ -84,7 +70,7 @@ $Mods = Get-InstalledModule
 
 foreach ($Mod in $Mods)
 {
-  	$earlist = Get-InstalledModule $Mod.Name -AllVersions | Select-Object -First 1
+  	$latest = Get-InstalledModule $Mod.Name -AllVersions | Select-Object -First 1
   	$specificMods = Get-InstalledModule $Mod.Name -AllVersions
 
 	if ($specificMods.count -gt 1)
@@ -92,7 +78,7 @@ foreach ($Mod in $Mods)
 		write-output "$($specificMods.count) versions of this module found [ $($Mod.Name) ]"
 		foreach ($sm in $specificMods)
 		{
-			if ($sm.version -ne $earlist.version)
+			if ($sm.version -ne $latest.version)
 			{ 
 				write-output " $($sm.name) - $($sm.version) [highest installed is $($latest.version)]" 
 				$sm | uninstall-module -force
