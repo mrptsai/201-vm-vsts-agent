@@ -101,7 +101,6 @@ for ($i=0; $i -lt $AgentCount; $i++)
 }
 #endregion
 
-
 # Uninstalling old Azure PowerShell Modules
 $programName = "Microsoft Azure PowerShell"
 $app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'" -Verbose

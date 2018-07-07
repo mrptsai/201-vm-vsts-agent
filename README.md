@@ -9,7 +9,7 @@ This Template **201-vm-vsts-agent** builds the following:
  * Creates 1 Nic for the Virtual Machine
  * Creates 1 Virtual Machine with OS Disk with Windows 2016 including Visual Studio Enterprise 2017.
  * Installs and configures upto 4 VSTS agents
- * Installs named versions of modules  
+ * Installs modules and packages from dedicated Nuget Repositories like MyGet.   
 
 ## Usage
 
@@ -24,24 +24,11 @@ Click on the **Deploy to Azure** button below. This will open the Azure Portal (
 
 ## Parameters
 
-- modules
-  - Enter the Names and Versions of the Modules to be installed in C:\Modules. This Parameter is a Json Array 
- - Default Modules and Versions are the following unless overridden:
-   - AzureRM 5.6.0
-   - AzureAD 2.0.1.3
-   - Bitbucket.v2 1.1.2
-   - GetPassword 1.0.0.0
-   - posh-git 0.7.1
- - Example:
- ```Json
-[
-	{"name": "AzureRM", "version": "5.6.0"},
-	{"name": "AzureAD", "version": "2.0.1.3"},
-	{"name": "Bitbucket.v2", "version": "1.1.2"},
-	{"name": "GetPassword", "version": "1.0.0.0"},
-	{"name": "posh-git", "version": "0.7.1"}
-]
- ```
+- modulesUri
+  - Enter the Uri of the Nuget Repository containing specific Modules to be installed 
+
+- packagesUri
+  - Enter the Uri of the Nuget Repository containing specific Packages to be installed using Chocolatey 
 
 - publicIPDnsName
   - The DNS Name for the Public IP Address. e.g. pipnameexample-dev.

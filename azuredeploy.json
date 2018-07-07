@@ -6,15 +6,13 @@
             "type": "string",
             "metadata": {
                 "description": "Enter the Modules Uri to install Modules from"
-            },
-            "defaultValue": "https://www.myget.org/F/vsts-modules/api/v2"
+            }
         },
         "packagesUri": {
             "type": "string",
             "metadata": {
                 "description": "Enter the Packages Uri to install Packages from"
-            },
-            "defaultValue": "https://www.myget.org/F/vsts-packages/api/v2"
+            }
         },
         "publicIPDnsName": {
             "type": "string",
