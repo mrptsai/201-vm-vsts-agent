@@ -2,49 +2,19 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "modules": {
-            "type": "array",
+        "modulesUri": {
+            "type": "string",
             "metadata": {
-                "description": "Enter the Module(s) to install including the Version"
+                "description": "Enter the Modules Uri to install Modules from"
             },
-            "defaultValue": [
-                {
-                    "name": "AzureRM",
-                    "version": "5.6.0"
-                },
-                {
-                    "name": "AzureAD",
-                    "version": "2.0.1.3"
-                },
-                {
-                    "name": "AzureServicePrincipalAccount",
-                    "version": "1.5.0"
-                },
-                {
-                    "name": "VSTSAgent",
-                    "version": "1.1.3"
-                }
-            ]
+            "defaultValue": "https://www.myget.org/F/vsts-modules/api/v2"
         },
-        "packages": {
-            "type": "array",
+        "packagesUri": {
+            "type": "string",
             "metadata": {
-                "description": "Enter the Packags(s) to install including the Version via Chocolatey"
+                "description": "Enter the Packages Uri to install Packages from"
             },
-            "defaultValue": [
-                {
-                    "name": "azure-cli",
-                    "version": "2.0.38"
-                },
-                {
-                    "name": "packer",
-                    "version": "1.2.4"
-                },
-                {
-                    "name": "terraform",
-                    "version": "0.11.7"
-                }
-            ]
+            "defaultValue": "https://www.myget.org/F/vsts-packages/api/v2"
         },
         "publicIPDnsName": {
             "type": "string",
@@ -129,11 +99,8 @@
         },
         "powerShell": {
             "script": "Install-VstsAgent.ps1",
-            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'), ' -AdminUser ', parameters('vmAdminUser'), ' -Modules ', variables('modules'), ' -Packages ', variables('packages'))]"
-        },
-        "singleQuote": "'",
-        "modules": "[replace(replace(replace(replace(replace(string(parameters('modules')), '[{\"', '@(@{'), '\":\"', concat(' = ', variables('singleQuote'))), '\",\"', concat(variables('singleQuote'), '; ')), '\"},{\"', concat(variables('singleQuote'), '}, @{')), '\"}]', concat(variables('singleQuote'), '})'))]",
-        "packages": "[replace(replace(replace(replace(replace(string(parameters('packages')), '[{\"', '@(@{'), '\":\"', concat(' = ', variables('singleQuote'))), '\",\"', concat(variables('singleQuote'), '; ')), '\"},{\"', concat(variables('singleQuote'), '}, @{')), '\"}]', concat(variables('singleQuote'), '})'))]"
+            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vsts,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'), ' -ModulesUri ', parameters('modulesUri'), ' -Packages ', parameters('packagesUri'))]"
+        }
     },
     "resources": [
         {
@@ -306,10 +273,5 @@
             ]
         }
     ],
-    "outputs": {
-        "Modules": {
-            "type" : "string",
-            "value": "[variables('modules')]"  
-        }
-    }
+    "outputs": {}
 }

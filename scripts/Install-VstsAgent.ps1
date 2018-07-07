@@ -19,15 +19,12 @@ Param
 
 	[Parameter(Mandatory=$true)]
 	[int]$AgentCount,
+	
+	[Parameter(Mandatory=$true)]
+	[string]$ModulesUri,
 
 	[Parameter(Mandatory=$true)]
-	[string]$AdminUser,
-
-	[Parameter(Mandatory=$true)]
-	[array]$Modules,
-
-	[Parameter(Mandatory=$true)]
-	[array]$Packages
+	[string]$PackagesUri
 )
 
 #region Variables
@@ -35,24 +32,27 @@ $PersonalAccessToken = $PersonalAccessToken | ConvertTo-SecureString -AsPlainTex
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 #endregion
 
-#region Install Chocolately 
+#region Register Repositories, Install Chocolately
+# Register Respositories
+Register-PSRepository -Name Modules -SourceLocation $ModulesUri -InstallationPolicy Trusted
+Register-PSRepository -Name Packages -SourceLocation $PackagesUri -InstallationPolicy Trusted
+
+# Install and Upgrade Chocolatey
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 choco upgrade chocolatey
 #endregion
 
 #region Install Packages
+
+$Packages = Find-Module -Repository Packages 
 foreach ($Package in $Packages)
 {
-	choco install $Package.Name --version $Package.Version --force -y
+	choco install $Package.Name -s $PackagesUri --force -y
 } 
 #endregion
 
-#region Modules
-# Adding new Path to PSModulePath environment variable
-$currentValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
-[Environment]::SetEnvironmentVariable("PSModulePath", $CurrentValue + ";$($modulesPath)", "Machine")
-$newValue = [Environment]::GetEnvironmentVariable("PSModulePath", "Machine")
-Write-Verbose "new Path is: $($newValue)" -verbose
+#region Install Modules
+$Modules = Find-Module -Repository Modules
 
 # Installing New Modules and Removing Old
 Foreach ($Module in $Modules)
@@ -62,7 +62,11 @@ Foreach ($Module in $Modules)
 	{
 		Get-InstalledModule $installedModule.Name -AllVersions | Uninstall-Module -Verbose
 	}
-	Find-Module -Name $Module.Name -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
+
+	if ($Module.Name -eq "AzureRM" -or ($Module.Name -notlike "AzureRM*" -and $Module.Name -notlike "Azure.*"))
+	{ 
+		Find-Module -Name $Module.Name -Repository Modules -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
+	}
 }
 
 # Checking for multiple versions of modules
@@ -85,14 +89,6 @@ foreach ($Mod in $Mods)
 			}
 		}
 	}
-}
-
-$DefaultModules = "PowerShellGet", "PackageManagement","Pester"
-
-Foreach ($Module in $DefaultModules)
-{
-	if ($tmp = Get-Module $Module -ErrorAction SilentlyContinue) {	Remove-Module $Module -Force	}
-	Find-Module -Name $Module -Repository PSGallery -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -Verbose
 }
 
 #region VSTS Agent
