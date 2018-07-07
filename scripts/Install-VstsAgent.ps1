@@ -69,7 +69,7 @@ Foreach ($Module in $Modules)
 	}
 }
 
-# Checking for multiple versions of modules
+# Checking for multiple versions of modules 
 $Mods = Get-InstalledModule
 
 foreach ($Mod in $Mods)
