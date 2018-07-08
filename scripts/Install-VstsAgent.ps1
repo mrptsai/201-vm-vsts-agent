@@ -28,7 +28,6 @@ Param
 )
 
 #region Variables
-$PersonalAccessToken = $PersonalAccessToken | ConvertTo-SecureString -AsPlainText -Force
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 #endregion
 
@@ -89,9 +88,14 @@ foreach ($Mod in $Mods)
 for ($i=0; $i -lt $AgentCount; $i++)
 {
 	$Agent = ($AgentName + "-" + $i)
-
-	Write-Verbose "Configuring agent '$($Agent)'" -Verbose
-	Install-VSTSAgent -Account $VSTSAccount -PAT $PersonalAccessToken -Name $Agent -Pool $PoolName -AgentDirectory "C:\Agents"
+	if ($tmp = Get-VstsAgent -AgentDirectory "C:\Agents" -NameFilter $Agent)
+	{
+		Write-Verbose "Replacing agent '$($Agent)'" -Verbose
+		Install-VSTSAgent -Account $VSTSAccount -PAT ($PersonalAccessToken | ConvertTo-SecureString -AsPlainText -Force) -Name $Agent -Pool $PoolName -AgentDirectory "C:\Agents" -Replace
+	} else {
+		Write-Verbose "Configuring agent '$($Agent)'" -Verbose
+		Install-VSTSAgent -Account $VSTSAccount -PAT ($PersonalAccessToken | ConvertTo-SecureString -AsPlainText -Force) -Name $Agent -Pool $PoolName -AgentDirectory "C:\Agents"
+	}	
 }
 #endregion
 
