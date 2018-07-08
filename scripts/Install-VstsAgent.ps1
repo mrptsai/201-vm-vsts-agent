@@ -58,7 +58,7 @@ Foreach ($Module in $Modules)
 {	
 	if ($Module.Name -eq "AzureRM" -or ($Module.Name -notlike "AzureRM*" -and $Module.Name -notlike "Azure.*"))
 	{ 
-		Install-Package -Name $Module.Name -Source $ModulesUri -ProviderName Nuget -Force -Confirm:$false -Verbose
+		Install-Module -Name $Module.Name -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
 	}
 }
 
