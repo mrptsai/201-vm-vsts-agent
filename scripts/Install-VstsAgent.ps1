@@ -58,7 +58,7 @@ Foreach ($Module in $Modules)
 {	
 	if ($Module.Name -eq "AzureRM" -or ($Module.Name -notlike "AzureRM*" -and $Module.Name -notlike "Azure.*"))
 	{ 
-		Find-Module -Name $Module.Name -Repository Modules -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
+		Install-Module -Name $Module.Name -Repository Modules -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
 	}
 }
 
@@ -85,6 +85,7 @@ foreach ($Mod in $Mods)
 }
 
 #region VSTS Agent
+Import-Module VSTSAgent -Force -Verbose
 for ($i=0; $i -lt $AgentCount; $i++)
 {
 	$Agent = ($AgentName + "-" + $i)
