@@ -57,12 +57,6 @@ $Modules = Find-Module -Repository Modules
 # Installing New Modules and Removing Old
 Foreach ($Module in $Modules)
 {	
-	$installedModules = Get-InstalledModule | Where-Object Name -like "$($Module.Name)*"
-	Foreach ($installedModule in $installedModules)
-	{
-		Get-InstalledModule $installedModule.Name -AllVersions | Uninstall-Module -Verbose
-	}
-
 	if ($Module.Name -eq "AzureRM" -or ($Module.Name -notlike "AzureRM*" -and $Module.Name -notlike "Azure.*"))
 	{ 
 		Find-Module -Name $Module.Name -Repository Modules -Verbose | Install-Module -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
