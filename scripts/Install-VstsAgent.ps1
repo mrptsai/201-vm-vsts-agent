@@ -51,15 +51,19 @@ foreach ($Package in $Packages)
 #endregion
 
 #region Install Modules
-$Modules = Find-Module -Repository Modules
+$Modules1 = Find-Module -Repository Modules | Where-Object {$_.Name -eq "AzureRM" -or ($_.Name -notlike "AzureRM*" -and $_.Name -notlike "Azure.*" -and $_.Name -ne "PowerShellGet" -and $_.Name -ne "PackageManagement" -and $_.Name -ne "Pester")} 
+$Modules2 = Find-Module -Repository Modules | Where-Object {$_.Name -eq "PowerShellGet" -or $_.Name -eq "PackageManagement" -or $_.Name -eq "Pester"}
 
-# Installing New Modules and Removing Old
-Foreach ($Module in $Modules)
+# Installing Custom Modules
+Foreach ($Module in $Modules1)
 {	
-	if ($Module.Name -eq "AzureRM" -or ($Module.Name -notlike "AzureRM*" -and $Module.Name -notlike "Azure.*"))
-	{ 
-		Install-Module -Name $Module.Name -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
-	}
+	Install-Module -Name $Module.Name -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
+}
+
+# Installing Default Modules
+Foreach ($Module in $Modules2)
+{	
+	Install-Module -Name $Module.Name -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
 }
 
 # Checking for multiple versions of modules 
