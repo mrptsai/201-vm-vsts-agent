@@ -118,12 +118,12 @@ foreach ($Package in $Packages)
 #region DevOps Agent
 Write-Verbose "Current folder: $($currentLocation)" -verbose
 
-#Create a temporary directory where to download from VSTS the agent package (vsts-agent.zip) and then launch the configuration.
+#Create a temporary directory where to download from Azure DevOps the agent package and then launch the configuration.
 New-Item -ItemType Directory -Force -Path $tempFolderName
 Write-Verbose "Temporary download folder: $($tempFolderName)" -verbose
 Write-Verbose "Server URL: $($serverUrl)" -Verbose
 
-Write-Verbose "Trying to get download URL for latest VSTS agent release..."
+Write-Verbose "Trying to get download URL for latest Azure DevOps agent release..."
 $header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PersonalAccessToken"))}
 $devopsUrl = "{0}/_apis/distributedtask/packages/agent?platform={1}&`$top=1" -f $serverUrl, "win-x64"
 $response = Invoke-WebRequest -UseBasicParsing -Headers $header -Uri $devopsUrl 
@@ -207,6 +207,6 @@ $programName = "Microsoft Azure PowerShell"
 $app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'" -Verbose
 $app.Uninstall()
 
-Write-Verbose "Exiting InstallVSTSAgent.ps1" -Verbose
+Write-Verbose "Exiting InstallDevOpsAgent.ps1" -Verbose
 Restart-Computer -Force
 #endregion

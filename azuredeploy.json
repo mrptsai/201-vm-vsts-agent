@@ -2,60 +2,54 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "publicIPDnsName": {
-            "type": "string",
-            "metadata": {
-                "description": "Enter a DNS name to resolve to the Public IP Address"
-            }
-        },
-        "scriptUrl": {
+        "script_url": {
             "type": "string",
             "metadata": {
             "description": "URL for the PowerShell Script. NOTE: Can be a Github url(raw) to the ps1 file"
             },
-            "defaultValue": "https://raw.githubusercontent.com/mrptsai/201-vm-vsts-agent/master/scripts/Install-VstsAgent.ps1"
+            "defaultValue": "https://raw.githubusercontent.com/mrptsai/201-vm-vsts-agent/master/scripts/Install-DevOpsAgent.ps1"
         },
-        "vmAdminUser": {
+        "vm_admin_user": {
             "type": "string",
             "metadata": {
                 "description": "The name of the Administrator Account to be created"
             }
         },
-        "vmAdminPassword": {
+        "vm_admin_password": {
             "type": "securestring",
             "metadata": {
                 "description": "The password for the Admin Account. Must be at least 12 characters long"
             },
             "minLength": 12
         },
-        "vmSize": {
+        "vm_size": {
             "type": "string",
             "metadata": {
                 "description": "Specifiy the size of VM required for the VM(s)"
             },            
-            "defaultValue": "Standard_D1_v2"
+            "defaultValue": "Standard_DS1_v2"
         },
-        "vstsAccount": {
+        "devops_org": {
             "type": "string",
             "metadata": {
-                "description": "The Visual Studio Team Services account name, that is, the first part of your VSTSAccount.visualstudio.com"
+                "description": "The Azure DevOps Organisation name, that is, the last part of your Azure DevOps Url e.g. http://dev.azure.com/{OrgName}"
             }
         },
-        "vstsAgentCount": {
+        "devops_agent_count": {
             "type": "int",
             "metadata": {
-                "description": "The number of Visual Studio Team Services agents to be coonfigured on the Virtual Machine. Defialt is 3"
+                "description": "The number of Azure DevOps agents to be configured on the Virtual Machine. Default is 3"
             },
             "allowedValues": [1, 2, 3, 4],
             "defaultValue": 3
         },
-        "vstsPersonalAccessToken": {
+        "devops_pat": {
             "type": "securestring",
             "metadata": {
-                "description": "The personal access token to connect to VSTS"
+                "description": "The personal access token to connect to Azure DevOps"
             }
         },
-        "vstsPoolName": {
+        "devops_pool_name": {
             "type": "string",
             "defaultValue": "Default",
             "metadata": {
@@ -71,21 +65,21 @@
             "subnet": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('names').vnet.name),'/subnets/', variables('names').vnet.subnet)]"
         },
         "names": {
-            "avs": "[concat('avs-vsts-', uniqueString(resourceGroup().id))]",
-            "nic": "[concat('nic-vsts-', uniqueString(resourceGroup().id))]",
-            "pip": "[concat('pip-vsts-', uniqueString(resourceGroup().id))]",
-            "vm": "[concat('vm-vsts-', substring(uniqueString(resourceGroup().id), 0, 6))]",
+            "avs": "[concat('avs-dev-', uniqueString(resourceGroup().id))]",
+            "nic": "[concat('nic-dev-', uniqueString(resourceGroup().id))]",
+            "pip": "[concat('pip-dev-', uniqueString(resourceGroup().id))]",
+            "vm": "[concat('vm-dev-', substring(uniqueString(resourceGroup().id), 0, 6))]",
             "vnet": {
-                "name": "[concat('vn-vsts-', uniqueString(resourceGroup().id))]",
+                "name": "[concat('vn-dev-', uniqueString(resourceGroup().id))]",
                 "addressPrefix": "10.0.0.0/16",
                 "subnet": "subnet-0",
                 "subnetPrefix": "10.0.0.0/24"
             },
-            "vsts": "[concat('agent-', uniqueString(resourceGroup().id))]"
+            "devops": "[concat('agent-', uniqueString(resourceGroup().id))]"
         },
         "powerShell": {
-            "script": "Install-VstsAgent.ps1",
-            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vm,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'))]"
+            "script": "Install-DevOpsAgent.ps1",
+            "parameters": "[concat('-DevOpsAccount ', parameters('devops_org'), ' -personalAccessToken ', parameters('devops_pat'), ' -AgentName ', variables('names').vm,' -PoolName ', parameters('devops_pool_name'), ' -AgentCount ', parameters('devops_agent_count'))]"
         }
     },
     "resources": [
@@ -116,9 +110,6 @@
                 "displayName": "publicIP"
             },
             "properties": {
-                "dnsSettings": {
-                    "domainNameLabel": "[parameters('publicIPDnsName')]"
-                },
                 "idleTimeoutInMinutes": 4,
                 "publicIPAddressVersion": "IPv4",
                 "publicIPAllocationMethod": "Dynamic"
@@ -199,12 +190,12 @@
                     "id": "[variables('ids').avs]"
                 },
                 "hardwareProfile": {
-                    "vmSize": "[parameters('vmSize')]"
+                    "vmSize": "[parameters('vm_size')]"
                 },
                 "osProfile": {
                     "computerName": "[variables('names').vm]",
-                    "adminUsername": "[parameters('vmAdminUser')]",
-                    "adminPassword": "[parameters('vmAdminPassword')]",
+                    "adminUsername": "[parameters('vm_admin_user')]",
+                    "adminPassword": "[parameters('vm_admin_password')]",
                     "windowsConfiguration": {
                         "provisionVMAgent": true,
                         "enableAutomaticUpdates": true
@@ -213,7 +204,7 @@
                 "storageProfile": {
                     "imageReference": {
                         "publisher": "MicrosoftVisualStudio",
-                        "offer": "VisualStudio",
+                        "offer": "VisualStudio2019",
                         "sku": "vs-2019-ent-ws2019",
                         "version": "latest"
                     },
@@ -234,24 +225,24 @@
 
             },
             "identity": {
-                "type": "systemAssigned"
+                "type": "SystemAssigned"
             },
             "resources": [
                 {
-                    "name": "vstsAgent",
+                    "name": "devOpsAgent",
                     "type": "extensions",
                     "location": "[resourceGroup().location]",
-                    "apiVersion": "2017-12-01",
+                    "apiVersion": "2018-10-01",
                     "dependsOn": [
                         "[variables('names').vm]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Compute",
                         "type": "CustomScriptExtension",
-                        "typeHandlerVersion": "1.9",
+                        "typeHandlerVersion": "1.9.3",
                         "settings": {
                             "fileUris": [
-                                "[parameters('scriptUrl')]"
+                                "[parameters('script_url')]"
                             ]
                         },
                         "protectedSettings": {                            
