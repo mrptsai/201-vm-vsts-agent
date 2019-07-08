@@ -68,7 +68,7 @@
             "avs": "[concat('avs-dev-', uniqueString(resourceGroup().id))]",
             "nic": "[concat('nic-dev-', uniqueString(resourceGroup().id))]",
             "pip": "[concat('pip-dev-', uniqueString(resourceGroup().id))]",
-            "vm": "[concat('vm-dev-', substring(uniqueString(resourceGroup().id), 0, 6))]",
+            "vm": "[concat('vm-dev-', substring(uniqueString(resourceGroup().id), 0, 8))]",
             "vnet": {
                 "name": "[concat('vn-dev-', uniqueString(resourceGroup().id))]",
                 "addressPrefix": "10.0.0.0/16",
@@ -239,7 +239,7 @@
                     "properties": {
                         "publisher": "Microsoft.Compute",
                         "type": "CustomScriptExtension",
-                        "typeHandlerVersion": "1.9.3",
+                        "typeHandlerVersion": "1.9",
                         "settings": {
                             "fileUris": [
                                 "[parameters('script_url')]"
