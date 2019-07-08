@@ -6,7 +6,7 @@
 Param
 (
 	[Parameter(Mandatory=$true)]
-	[string]$VSTSAccount,
+	[string]$DevOpsAccount,
 
 	[Parameter(Mandatory=$true)]
 	[string]$PersonalAccessToken,
@@ -20,11 +20,19 @@ Param
 	[Parameter(Mandatory=$true)]
 	[int]$AgentCount,
 	
-	[Parameter(Mandatory=$true)]
-	[string]$ModulesUri,
+	[Parameter(Mandatory=$false)]
+	[object]$Modules = @(
+		@{ Name = "Az"; Version = "2.4.0" },
+		@{ Name = "Az.Blueprint"; Version = "0.2.1" },
+		@{ Name = "Pester"; Version = "4.8.1" }
+	),
 
-	[Parameter(Mandatory=$true)]
-	[string]$PackagesUri
+	[Parameter(Mandatory=$false)]
+	[object]$Packages = @(
+		@{ Name = "powershell-core"; Version = "6.2.1.20190704" },
+		@{ Name = "azure-cli"; Version = "2.0.68" },
+		@{ Name = "terraform"; Version = "0.12.3"}		
+	)
 )
 
 #region Functions
@@ -50,7 +58,7 @@ Function Invoke-FileDownLoad
 	{
 		try
 		{
-			Invoke-WebRequest -Uri $Uri -Method Get -OutFile "$($TempFolderName)\$($Name).zip"
+			Invoke-WebRequest -Uri $Uri -Method GET -OutFile "$($TempFolderName)\$($Name).zip"
 			Write-Verbose "Downloaded $($Name) successfully on attempt $retries" -verbose
 			break
 		} catch
@@ -86,14 +94,14 @@ Function Expand-ZipFile
 #region Variables
 $currentLocation = Split-Path -parent $MyInvocation.MyCommand.Definition
 $tempFolderName = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
-$serverUrl = "https://$($VSTSAccount).visualstudio.com"
+$serverUrl = "https://dev.azure.com/$($DevOpsAccount)"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 #endregion
 
-#region Register Repositories, Install Chocolately
+#region Register Repositories, Install Chocgeolately
 # Register Respositories
-Register-PSRepository -Name Modules -SourceLocation $ModulesUri -InstallationPolicy Trusted
-Register-PSRepository -Name Packages -SourceLocation $PackagesUri -InstallationPolicy Trusted
+Register-PSRepository -Name Modules -SourceLocation "https://www.powershellgallery.com/api/v2" -InstallationPolicy Trusted
+Register-PSRepository -Name Packages -SourceLocation "http://chocolatey.org/api/v2" -InstallationPolicy Trusted
 
 # Install and Upgrade Chocolatey
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -101,15 +109,13 @@ choco upgrade chocolatey
 #endregion
 
 #region Install Packages
-
-$Packages = Find-Module -Repository Packages 
 foreach ($Package in $Packages)
 {
-	choco install $Package.Name -s $PackagesUri --force -y
+	choco install $Package.Name --version $Package.Version --force -y
 } 
 #endregion
 
-#region VSTS Agent
+#region DevOps Agent
 Write-Verbose "Current folder: $($currentLocation)" -verbose
 
 #Create a temporary directory where to download from VSTS the agent package (vsts-agent.zip) and then launch the configuration.
@@ -118,9 +124,13 @@ Write-Verbose "Temporary download folder: $($tempFolderName)" -verbose
 Write-Verbose "Server URL: $($serverUrl)" -Verbose
 
 Write-Verbose "Trying to get download URL for latest VSTS agent release..."
-$latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Microsoft/vsts-agent/releases"
-$latestRelease = $latestRelease.assets | Where-Object name -like "*win-x64*" | Sort-Object created_at -Descending | Select-Object -First 1
-Invoke-FileDownLoad -Name "vsts-agent" -Uri $latestRelease.browser_download_url -TempFolderName $tempFolderName
+$header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PersonalAccessToken"))}
+$devopsUrl = "{0}/_apis/distributedtask/packages/agent?platform={1}&`$top=1" -f $serverUrl, "win-x64"
+$response = Invoke-WebRequest -UseBasicParsing -Headers $header -Uri $devopsUrl 
+$response = ConvertFrom-Json $response.Content
+$uri = $response.value[0].downloadUrl
+
+Invoke-FileDownLoad -Name "devops-agent" -Uri $uri -TempFolderName $tempFolderName
 
 for ($i=0; $i -lt $AgentCount; $i++)
 {
@@ -136,7 +146,7 @@ for ($i=0; $i -lt $AgentCount; $i++)
 	Push-Location -Path $agentInstallationPath
 	
 	# Extract Download File
-	Expand-ZipFile -Name "vsts-agent" -Path $agentInstallationPath -TempFolderName $tempFolderName
+	Expand-ZipFile -Name "devops-agent" -Path $agentInstallationPath -TempFolderName $tempFolderName
 
 	# Removing the ZoneIdentifier from files downloaded from the internet so the plugins can be loaded
 	# Don't recurse down _work or _diag, those files are not blocked and cause the process to take much longer
@@ -164,12 +174,10 @@ for ($i=0; $i -lt $AgentCount; $i++)
 #endregion
 
 #region Install Modules
-$Modules = Find-Module -Repository Modules | Where-Object {$_.Name -eq "AzureRM" -or ($_.Name -notlike "AzureRM*" -and $_.Name -notlike "Azure.*")} 
-
 # Installing Modules
 Foreach ($Module in $Modules)
 {	
-	Install-Module -Name $Module.Name -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
+	Install-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
 }
 
 # Checking for multiple versions of modules 

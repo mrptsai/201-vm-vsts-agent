@@ -2,18 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "modulesUri": {
-            "type": "string",
-            "metadata": {
-                "description": "Enter the Modules Uri to install Modules from"
-            }
-        },
-        "packagesUri": {
-            "type": "string",
-            "metadata": {
-                "description": "Enter the Packages Uri to install Packages from"
-            }
-        },
         "publicIPDnsName": {
             "type": "string",
             "metadata": {
@@ -97,7 +85,7 @@
         },
         "powerShell": {
             "script": "Install-VstsAgent.ps1",
-            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vm,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'), ' -ModulesUri ', parameters('modulesUri'), ' -PackagesUri ', parameters('packagesUri'))]"
+            "parameters": "[concat('-vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('vstsPersonalAccessToken'), ' -AgentName ', variables('names').vm,' -PoolName ', parameters('vstsPoolName'), ' -AgentCount ', parameters('vstsAgentCount'))]"
         }
     },
     "resources": [
@@ -122,7 +110,7 @@
             "name": "[variables('names').pip]",
             "type": "Microsoft.Network/publicIPAddresses",
             "location": "[resourceGroup().location]",
-            "apiVersion": "2017-10-01",
+            "apiVersion": "2019-02-01",
             "dependsOn": [],
             "tags": {
                 "displayName": "publicIP"
@@ -140,7 +128,7 @@
             "name": "[variables('names').vnet.name]",
             "type": "Microsoft.Network/virtualNetworks",
             "location": "[resourceGroup().location]",
-            "apiVersion": "2017-10-01",
+            "apiVersion": "2019-02-01",
             "dependsOn": [],
             "tags": {
                 "displayName": "virtualNetwork"
@@ -165,7 +153,7 @@
             "name": "[variables('names').nic]",
             "type": "Microsoft.Network/networkInterfaces",
             "location": "[resourceGroup().location]",
-            "apiVersion": "2017-10-01",
+            "apiVersion": "2018-10-01",
             "dependsOn": [
                 "[variables('names').pip]",
                 "[variables('names').vnet.name]"
@@ -198,7 +186,7 @@
             "name": "[variables('names').vm]",
             "type": "Microsoft.Compute/virtualMachines",
             "location": "[resourceGroup().location]",
-            "apiVersion": "2017-12-01",
+            "apiVersion": "2018-10-01",
             "dependsOn": [
                 "[variables('names').avs]",
                 "[variables('names').nic]"
@@ -226,7 +214,7 @@
                     "imageReference": {
                         "publisher": "MicrosoftVisualStudio",
                         "offer": "VisualStudio",
-                        "sku": "VS-2017-Ent-WS2016",
+                        "sku": "vs-2019-ent-ws2019",
                         "version": "latest"
                     },
                     "osDisk": {
@@ -244,6 +232,9 @@
                     ]
                 }
 
+            },
+            "identity": {
+                "type": "systemAssigned"
             },
             "resources": [
                 {
