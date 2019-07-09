@@ -6,10 +6,10 @@
 Param
 (
 	[Parameter(Mandatory=$true)]
-	[string]$DevOpsAccount,
+	[string]$DevOpsOrg,
 
 	[Parameter(Mandatory=$true)]
-	[string]$PersonalAccessToken,
+	[string]$DevOpsPAT,
 
 	[Parameter(Mandatory=$true)]
 	[string]$AgentName,
@@ -94,14 +94,14 @@ Function Expand-ZipFile
 #region Variables
 $currentLocation = Split-Path -parent $MyInvocation.MyCommand.Definition
 $tempFolderName = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
-$serverUrl = "https://dev.azure.com/$($DevOpsAccount)"
+$serverUrl = "https://dev.azure.com/$($DevOpsOrg)"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 #endregion
 
 #region Register Repositories, Install Chocgeolately
 # Register Respositories
-Register-PSRepository -Name Modules -SourceLocation "https://www.powershellgallery.com/api/v2" -InstallationPolicy Trusted
-Register-PSRepository -Name Packages -SourceLocation "http://chocolatey.org/api/v2" -InstallationPolicy Trusted
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 
 # Install and Upgrade Chocolatey
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -124,7 +124,7 @@ Write-Verbose "Temporary download folder: $($tempFolderName)" -verbose
 Write-Verbose "Server URL: $($serverUrl)" -Verbose
 
 Write-Verbose "Trying to get download URL for latest Azure DevOps agent release..."
-$header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$PersonalAccessToken"))}
+$header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$DevOpsPAT"))}
 $devopsUrl = "{0}/_apis/distributedtask/packages/agent?platform={1}&`$top=1" -f $serverUrl, "win-x64"
 $response = Invoke-WebRequest -UseBasicParsing -Headers $header -Uri $devopsUrl 
 $response = ConvertFrom-Json $response.Content
@@ -174,38 +174,44 @@ for ($i=0; $i -lt $AgentCount; $i++)
 #endregion
 
 #region Install Modules
-# Installing Modules
-Foreach ($Module in $Modules)
-{	
-	Install-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository Modules -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
+# Installing Modules using PowerShell Core
+$scriptBlock = {
+    $Modules = $args
+
+    foreach ($Module in $Modules)
+    {	
+	    Install-Module -Name $Module.Name -RequiredVersion $Module.Version -Repository PSGallery -Scope AllUsers -Force -Confirm:$false -SkipPublisherCheck -AllowClobber -Verbose
+    }
+
+    # Checking for multiple versions of modules 
+    $Mods = Get-InstalledModule
+
+    foreach ($Mod in $Mods)
+    {
+  	    $latest = Get-InstalledModule $Mod.Name -AllVersions | Select-Object -First 1
+  	    $specificMods = Get-InstalledModule $Mod.Name -AllVersions
+
+	    if ($specificMods.count -gt 1)
+	    {
+		    write-output "$($specificMods.count) versions of this module found [ $($Mod.Name) ]"
+		    foreach ($sm in $specificMods)
+		    {
+			    if ($sm.version -ne $latest.version)
+			    { 
+				    write-output " $($sm.name) - $($sm.version) [highest installed is $($latest.version)]" 
+				    $sm | uninstall-module -force
+			    }
+		    }
+	    }
+    }
 }
 
-# Checking for multiple versions of modules 
-$Mods = Get-InstalledModule
-
-foreach ($Mod in $Mods)
-{
-  	$latest = Get-InstalledModule $Mod.Name -AllVersions | Select-Object -First 1
-  	$specificMods = Get-InstalledModule $Mod.Name -AllVersions
-
-	if ($specificMods.count -gt 1)
-	{
-		write-output "$($specificMods.count) versions of this module found [ $($Mod.Name) ]"
-		foreach ($sm in $specificMods)
-		{
-			if ($sm.version -ne $latest.version)
-			{ 
-				write-output " $($sm.name) - $($sm.version) [highest installed is $($latest.version)]" 
-				$sm | uninstall-module -force
-			}
-		}
-	}
-}
+pwsh -Command $scriptBlock -Args $Modules -NonInteractive -ExecutionPolicy Unrestricted
 
 # Uninstalling old Azure PowerShell Modules
 $programName = "Microsoft Azure PowerShell"
-$app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'" -Verbose
-$app.Uninstall()
+if ($app = Get-WmiObject -Class Win32_Product -Filter "Name Like '$($programName)%'" -Verbose) 
+{ $app.Uninstall() }
 
 Write-Verbose "Exiting InstallDevOpsAgent.ps1" -Verbose
 Restart-Computer -Force

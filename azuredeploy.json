@@ -65,12 +65,12 @@
             "subnet": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('names').vnet.name),'/subnets/', variables('names').vnet.subnet)]"
         },
         "names": {
-            "avs": "[concat('avs-dev-', uniqueString(resourceGroup().id))]",
-            "nic": "[concat('nic-dev-', uniqueString(resourceGroup().id))]",
-            "pip": "[concat('pip-dev-', uniqueString(resourceGroup().id))]",
-            "vm": "[concat('vm-dev-', substring(uniqueString(resourceGroup().id), 0, 8))]",
+            "avs": "[concat('avs-azdev-', variables('prefix'))]",
+            "nic": "[concat('nic-azdev-', variables('prefix'))]",
+            "pip": "[concat('pip-azdev-', variables('prefix'))]",
+            "vm": "[concat('vm-azdev-', variables('prefix'))]",
             "vnet": {
-                "name": "[concat('vn-dev-', uniqueString(resourceGroup().id))]",
+                "name": "[concat('vn-azdev-',variables('prefix'))]",
                 "addressPrefix": "10.0.0.0/16",
                 "subnet": "subnet-0",
                 "subnetPrefix": "10.0.0.0/24"
@@ -79,8 +79,9 @@
         },
         "powerShell": {
             "script": "Install-DevOpsAgent.ps1",
-            "parameters": "[concat('-DevOpsAccount ', parameters('devops_org'), ' -personalAccessToken ', parameters('devops_pat'), ' -AgentName ', variables('names').vm,' -PoolName ', parameters('devops_pool_name'), ' -AgentCount ', parameters('devops_agent_count'))]"
-        }
+            "parameters": "[concat('-DevOpsOrg ', parameters('devops_org'), ' -DevOpsPAT ', parameters('devops_pat'), ' -AgentName ', variables('names').vm,' -PoolName ', parameters('devops_pool_name'), ' -AgentCount ', parameters('devops_agent_count'))]"
+        },
+        "prefix": "[substring(uniqueString(resourceGroup().id), 0, 6)]"
     },
     "resources": [
         {
