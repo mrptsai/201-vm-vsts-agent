@@ -44,7 +44,7 @@
             "defaultValue": 3
         },
         "devops_pat": {
-            "type": "string",
+            "type": "securestring",
             "metadata": {
                 "description": "The personal access token to connect to Azure DevOps"
             }

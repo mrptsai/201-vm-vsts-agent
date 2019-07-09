@@ -165,7 +165,7 @@ for ($i=0; $i -lt $AgentCount; $i++)
 	# Call the agent with the configure command and all the options (this creates the settings file) without prompting
 	# the user or blocking the cmd execution
 	Write-Verbose "Configuring agent '$($Agent)'" -Verbose		
-	.\config.cmd --unattended --url $serverUrl --auth PAT --token $PersonalAccessToken --pool $PoolName --agent $Agent --runasservice
+	.\config.cmd --unattended --url $serverUrl --auth PAT --token $DevOpsPAT --pool $PoolName --agent $Agent --runasservice
 	
 	Write-Verbose "Agent install output: $LASTEXITCODE" -Verbose
 	
